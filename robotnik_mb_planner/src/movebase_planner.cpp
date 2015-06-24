@@ -312,21 +312,18 @@ private:
 	std::string command_;
 	double param_[MAX_PARAMETERS];
 	
-	// Specific keonn commands
+	// Specific base commands
 	double twist_speed_;
 	double twist_angle_;
 	double dist_since_last_twist_;
-  bool first_waypoint_reached_;
-  bool last_waypoint_reached_;
-  bool navigation_stuck_;
+    bool first_waypoint_reached_;
+    bool last_waypoint_reached_;
+    bool navigation_stuck_;
 	ros::Publisher dist_pub_;
-  ros::Publisher first_waypoint_reached_pub_;
-  ros::Publisher last_waypoint_reached_pub_;
-  ros::Publisher navigation_stuck_pub_;
+    ros::Publisher first_waypoint_reached_pub_;
+    ros::Publisher last_waypoint_reached_pub_;
+    ros::Publisher navigation_stuck_pub_;
   
-  
-  
-
     // ACTIONLIB CLIENT
     MoveBaseClient ac_;
 

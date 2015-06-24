@@ -11,7 +11,7 @@
 
 
   <url type="website">http://wiki.ros.org/robotnik_mb_msgs</url> 
-  <url type="repository">https://rguzman%40robotnik.es@git1.projectlocker.com/robotnik/keonn.git </url>  
+  <url type="repository">https://github.com/RobotnikAutomation/robotnik_movebase_planner.git</url>  
   
   <author email="rnavarro@robotnik.es">Román Navarro</author>
 
