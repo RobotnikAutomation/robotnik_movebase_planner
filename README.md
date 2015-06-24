@@ -1,2 +1,4 @@
-# robotnik_movebase_planner
-Robotnik - Movebase Planner - Package to define (in rviz) sequence of waypoints and send them to movebase 
+robotnik_movebase_planner
+---------------------------
+
+ROS package that implements a planner to follow waypoints via navigation stack - move_base

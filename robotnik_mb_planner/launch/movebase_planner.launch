@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start movebase_planner node -->
+  <node pkg="robotnik_mb_planner" type="robotnik_mb_planner_node" name="robotnik_mb_planner" output="screen">	
+	<param name="desired_freq" value="50.0"/>
+ 	<param name="command_topic" value="/cmd_vel"/>
+ 	<param name="odom_topic" value="/odom"/>    
+ 	<!-- path frame id : usually map or odom -->
+ 	<param name="path_frame_id" value="map" />
+  </node>
+
+</launch>
+

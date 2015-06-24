@@ -1,0 +1,10 @@
+# define command
+string cmd
+string client_id
+float32[] param
+---
+# define result
+int32 cmd_result
+---
+# define feedback
+float32 percent_complete

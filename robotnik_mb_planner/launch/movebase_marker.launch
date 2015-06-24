@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- start robotnik_mb_planner node -->
+  <node pkg="robotnik_mb_planner" type="path_marker.py" name="path_marker" output="screen">
+	<!-- param name="frame_id" value="/map" type="string"/ -->
+	<param name="frame_id" value="/map" type="string"/>
+    <param name="planner_path" value="robotnik_mb_planner/path" type="string"/>
+    <param name="planner_command" value="robotnik_mb_planner/command" type="string"/>
+    
+  </node>
+
+</launch>
+
