@@ -525,6 +525,11 @@ void ControlThread()
 						int iWaypoint = pathCurrent_.GetCurrentWaypointIndex();
 						if (iWaypoint >= pathCurrent_.NumOfWaypoints()-1) {
 							ROS_INFO("Last waypoint is reached - end of path");
+							
+							// Set goal as succeded
+							goto_result_.route_result = 1;
+							action_server_goto.setSucceeded(goto_result_);
+              
               last_waypoint_reached_ = true;
 							iState_ = IDLE_STATE;
 							}
