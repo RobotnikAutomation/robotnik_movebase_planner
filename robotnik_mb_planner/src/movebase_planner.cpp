@@ -957,7 +957,7 @@ void ControlThread()
     {
         Waypoint w;
 
-        if(pathCurrent_.NumOfWaypoints() < 2)	{
+        if(pathCurrent_.NumOfWaypoints() < 1)	{
             ROS_ERROR("SendGoal: not enough waypoints");
             return -1 ;
             }
