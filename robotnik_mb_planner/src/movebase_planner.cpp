@@ -723,6 +723,7 @@ void ControlThread()
 		// Cancels current action
 		ROS_INFO("movebase_planner::CancelPath: action server preempted");
 		action_server_goto.setPreempted();
+		ac_.cancelGoal();
 	}
 	
 					
@@ -924,7 +925,7 @@ void ControlThread()
         ROS_INFO("Action: PreemptCB");
 		if (iState_ != IDLE_STATE) {
 			CancelPath();			
-			iState_ == IDLE_STATE;
+			iState_ = IDLE_STATE;
 			}
       
       // restart navigation variables
@@ -976,7 +977,8 @@ void ControlThread()
 			///move_base/TrajectoryPlannerROS/max_vel_theta
 			///move_base/TrajectoryPlannerROS/max_vel_x
 			char buf[120];
-			sprintf(buf, "rosrun dynamic_reconfigure dynparam set move_base/TrajectoryPlannerROS max_vel_x %5.2f", w.dSpeed);
+			//sprintf(buf, "rosrun dynamic_reconfigure dynparam set move_base/TrajectoryPlannerROS max_vel_x %5.2f", w.dSpeed);
+			sprintf(buf, "rosrun dynamic_reconfigure dynparam set move_base/TebLocalPlannerROS max_vel_x %5.2f", w.dSpeed);
 			system(buf);
 
 
