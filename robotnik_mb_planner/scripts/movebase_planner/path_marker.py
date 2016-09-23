@@ -276,7 +276,9 @@ class PointPathManager(InteractiveMarkerServer):
 		self.planner_client = MbPlannerClientPath(planner_path)
 		self.command_client = MbPlannerClientCommand(planner_command)
 
-		self.current_continous_mode = False;
+		self.current_continous_mode = False
+		rospy.loginfo('Waiting for %s service' % planner_toggle_continous_mode)
+		rospy.wait_for_service(planner_toggle_continous_mode)
 		self.continuous_mode_service = rospy.ServiceProxy(planner_toggle_continous_mode, SetBool)
 		self.continuous_mode_service(self.current_continous_mode)
 		self.menu_handler.setCheckState(self.continuous_mode_entry, MenuHandler.UNCHECKED)
