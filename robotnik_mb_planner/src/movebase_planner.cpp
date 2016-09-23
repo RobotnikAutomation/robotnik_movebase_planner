@@ -34,7 +34,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Bool.h>
-
+#include <std_srvs/SetBool.h>
 
 #define ODOM_TIMEOUT_ERROR					0.2				// max num. of seconds without receiving odom values
 #define MAP_TIMEOUT_ERROR					0.2				// max num. of seconds without receiving map transformations
@@ -324,6 +324,10 @@ private:
     ros::Publisher last_waypoint_reached_pub_;
     ros::Publisher navigation_stuck_pub_;
   
+    // If the planner must loop the waytpoints once the last one is reached
+    ros::ServiceServer toggle_continous_mode_srv_;
+    bool bContinuousMode_;
+
     // ACTIONLIB CLIENT
     MoveBaseClient ac_;
 
@@ -344,6 +348,7 @@ public:
     desired_freq_(100.0), 
     action_server_goto(node_handle_, ros::this_node::getName() + "/path", false),
     action_server_command(node_handle_, ros::this_node::getName() + "/command", false),
+    bContinuousMode_(false),
     ac_("move_base", true)   //tell the action client that we want to spin a thread by default
 	{
 		bRunning = false;		
@@ -378,6 +383,9 @@ void ROSSetup(){
   private_node_handle_.param("max_speed", max_speed_, MAX_SPEED);
 	private_node_handle_.param("desired_freq", desired_freq_, desired_freq_);
 	private_node_handle_.param<std::string>("path_frame_id", path_frame_id_, "odom");
+	private_node_handle_.param<bool>("continuous_mode", bContinuousMode_, true);
+    toggle_continous_mode_srv_ = private_node_handle_.advertiseService("continuous_mode",  &movebase_planner_node::ToggleContinuousMode, this);
+
 	ROS_INFO("Path refered to frame: %s ", path_frame_id_.c_str());
     
   // Subscriptions
@@ -524,15 +532,23 @@ void ControlThread()
 					if (ControlPath()) {
 						int iWaypoint = pathCurrent_.GetCurrentWaypointIndex();
 						if (iWaypoint >= pathCurrent_.NumOfWaypoints()-1) {
-							ROS_INFO("Last waypoint is reached - end of path");
+	                        //ROS_INFO_STREAM("continuous?: " << bContinuousMode_);
+						    if (bContinuousMode_) {
+							    ROS_INFO("Last waypoint is reached, but I'm on continuous mode, go to first waypoint!");
+							    pathCurrent_.SetCurrentWaypoint(0);
+    							iState_ = SEND_WAYPOINT;
+						    }
+						    else {
+    							ROS_INFO("Last waypoint is reached - end of path");
 							
-							// Set goal as succeded
-							goto_result_.route_result = 1;
-							action_server_goto.setSucceeded(goto_result_);
+	    						// Set goal as succeded
+		    					goto_result_.route_result = 1;
+			    				action_server_goto.setSucceeded(goto_result_);
               
-              last_waypoint_reached_ = true;
-							iState_ = IDLE_STATE;
+                                last_waypoint_reached_ = true;
+							    iState_ = IDLE_STATE;
 							}
+						}
 						else {
 							ROS_INFO("iWaypoint=%d numofwaypoints=%d", iWaypoint, pathCurrent_.NumOfWaypoints());							
 							pathCurrent_.SetCurrentWaypoint( iWaypoint + 1 );
@@ -754,6 +770,17 @@ void ControlThread()
 //        if(bCancel_)		// Performs the cancel in case of required
 //			CancelPath();
 	}
+
+
+    bool ToggleContinuousMode(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+    {
+        bContinuousMode_ = req.data;
+    
+        ROS_INFO_STREAM("Continuous mode has been " << (bContinuousMode_ ? "enabled" : "disabled"));
+        res.success = true;
+        res.message = "";
+        return true;
+    }
 	
 	/*! \fn void OdomCallback(const nav_msgs::Odometry::ConstPtr& odom_value)
 		* Receives odom values

@@ -39,8 +39,10 @@ from interactive_markers.menu_handler import *
 import actionlib
 from geometry_msgs.msg import Pose2D
 from robotnik_mb_msgs.msg import goal, GoToGoal, GoToAction, CommandGoal, CommandAction
-from std_srvs.srv import Empty
+from std_srvs.srv import Empty, SetBool
 from math import sqrt
+
+server = None
 
 # Client based on ActionServer to send Path goals to the robotnik_mb_planner node 
 class MbPlannerClientPath():
@@ -214,7 +216,7 @@ class PointPath(InteractiveMarker):
 ## @brief Manages the creation of waypoints and how to send them to the planner
 class PointPathManager(InteractiveMarkerServer):
 	
-	def __init__(self, name, frame_id, planner_path, planner_command):
+	def __init__(self, name, frame_id, planner_path, planner_command, planner_toggle_continous_mode):
 		InteractiveMarkerServer.__init__(self, name)
 		self.list_of_points = []
 		self.frame_id = frame_id
@@ -247,6 +249,7 @@ class PointPathManager(InteractiveMarkerServer):
 		entry = self.menu_handler.insert( "Pause", parent=h_second_entry, callback=self.sendCommandPauseCB)
 		entry = self.menu_handler.insert( "Restart", parent=h_second_entry, callback=self.sendCommandRestartCB)
 		entry = self.menu_handler.insert( "Twist", parent=h_second_entry, callback=self.sendCommandTwistCB)
+		self.continuous_mode_entry = self.menu_handler.insert( "ContinousMode", parent=h_second_entry, callback=self.toggleContinuousModeCB)
 		h_third_entry = self.menu_handler.insert( "Interface" )
 		entry_pgrid = self.menu_handler.insert( "Position Grid", parent=h_third_entry)
 		entry_agrid = self.menu_handler.insert( "Orientation Grid", parent=h_third_entry)
@@ -272,7 +275,12 @@ class PointPathManager(InteractiveMarkerServer):
 		rospy.loginfo('Planner_path=%s  Planner_command=%s'%(planner_path, planner_command))
 		self.planner_client = MbPlannerClientPath(planner_path)
 		self.command_client = MbPlannerClientCommand(planner_command)
-		
+
+		self.current_continous_mode = False;
+		self.continuous_mode_service = rospy.ServiceProxy(planner_toggle_continous_mode, SetBool)
+		self.continuous_mode_service(self.current_continous_mode)
+		self.menu_handler.setCheckState(self.continuous_mode_entry, MenuHandler.UNCHECKED)
+
 		# Locates and loads the UI file into the widget
 		rp = rospkg.RosPack()		
 		# loads a ui file for the dialog
@@ -282,6 +290,7 @@ class PointPathManager(InteractiveMarkerServer):
 		self._go_service = rospy.Service('%s/go'%rospy.get_name(), Empty, self.goService)
 		self._go_back_service = rospy.Service('%s/go_back'%rospy.get_name(), Empty, self.goBackService)
 		self._cancel_service = rospy.Service('%s/cancel'%rospy.get_name(), Empty, self.cancelService)
+
 		
 
 	def alignMarker( self, feedback ):
@@ -587,6 +596,20 @@ class PointPathManager(InteractiveMarkerServer):
 	def sendCommandTwistCB(self, feedback):
 		self.command_client.Command(cmd="TWIST", param=[0.3,0.15])
 		return
+    ## @brief Toogle ContinuousMode
+	def toggleContinuousModeCB(self, feedback):
+		self.current_continous_mode = not(self.current_continous_mode)
+		check_state = MenuHandler.NO_CHECKBOX
+		check_state = MenuHandler.UNCHECKED
+		if self.current_continous_mode == True:
+			check_state = MenuHandler.CHECKED
+		else:
+			check_state = MenuHandler.UNCHECKED
+		self.menu_handler.setCheckState(self.continuous_mode_entry, check_state)
+		self.continuous_mode_service(self.current_continous_mode)
+		self.menu_handler.reApply(server)
+		self.applyChanges()
+		return
 
 	def startFromThisWPCB(self, feedback):
 		pose = feedback.pose
@@ -620,7 +643,8 @@ if __name__=="__main__":
 	arg_defaults = {
 	  'frame_id': '/map',
 	  'planner_path': 'robotnik_mb_planner/path',
-	  'planner_command': 'robotnik_mb_planner/command'
+	  'planner_command': 'robotnik_mb_planner/command',
+	  'planner_toggle_continous_mode': 'robotnik_mb_planner/continuous_mode'
 	}
 	
 	args = {}
@@ -635,7 +659,7 @@ if __name__=="__main__":
 		except rospy.ROSException, e:
 			rospy.logerror('%s: %s'%(e, _name))
 	
-	server = PointPathManager(_name, frame_id = args['frame_id'], planner_path = args['planner_path'], planner_command = args['planner_command'])
+	server = PointPathManager(_name, frame_id = args['frame_id'], planner_path = args['planner_path'], planner_command = args['planner_command'], planner_toggle_continous_mode= args['planner_toggle_continous_mode'])
 	
 	rospy.spin()
 

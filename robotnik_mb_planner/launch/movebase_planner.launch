@@ -8,6 +8,7 @@
  	<param name="odom_topic" value="/odom"/>    
  	<!-- path frame id : usually map or odom -->
  	<param name="path_frame_id" value="map" />
+ 	<param name="continuous_mode" value="false" />
   </node>
 
 </launch>
